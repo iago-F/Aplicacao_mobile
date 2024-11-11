@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1009693461933",
+    "project_id": "aluguel-mobile",
+    "storage_bucket": "aluguel-mobile.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009693461933:android:010cc8c95d5e02e4932524",
+        "android_client_info": {
+          "package_name": "com.example.aluguel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9Ucw1LrQKE6eUlhOrCqDsZB_Wv2pqAik"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
