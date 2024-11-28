@@ -94,6 +94,21 @@ class CasaServices extends ChangeNotifier {
     }
   }
 
+  // metodo para trazer todas as casas do bacno
+  Future<List<Casa>> buscarTodasCasas() async {
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('casas').get();
+
+      // Mapeia os documentos para objetos do tipo Casa
+      return snapshot.docs
+          .map((doc) => Casa.fromJson(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('Erro ao buscar todas as casas: $e');
+      return [];
+    }
+  }
+
   // Método para excluir uma casa
   Future<bool> excluirCasa(String casaId) async {
     try {
