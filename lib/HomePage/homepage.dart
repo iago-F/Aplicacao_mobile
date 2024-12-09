@@ -5,6 +5,7 @@ import 'package:aluguel/usuario/usuario_services.dart';
 import 'package:aluguel/casa/minhas_casas_page.dart';
 import 'package:aluguel/HomePage/TodasCasasPage.dart';
 import 'package:aluguel/casa/casa_model.dart';
+import 'package:aluguel/usuario/meu_perfil_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -12,28 +13,24 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0; // Índice para controle da navegação
+  int _selectedIndex = 0;
   late CasaServices _casaServices;
-  late String usuarioId; // Declarado como late para inicializar depois
-  late List<Widget> _pages; // Lista de páginas será inicializada no initState
+  late String usuarioId;
+  late List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
 
-    // Inicializa o UsuarioServices
     UsuarioServices _usuarioServices = UsuarioServices();
     usuarioId = _usuarioServices.getUsuarioId() ?? 'default_id';
 
-    // Inicializa o CasaServices
     _casaServices = CasaServices(_usuarioServices);
 
-    // Inicializa as páginas
     _pages = [
-      // Passa o Future diretamente para o FutureBuilder
-      TodasCasasPage(casaServices: _casaServices), // Exibe todas as casas
-      CadastrarCasaPage(casaServices: _casaServices), // Cadastrar Casa
-      MinhasCasasPage(), // Exibe Minhas Casas
+      TodasCasasPage(casaServices: _casaServices),
+      CadastrarCasaPage(casaServices: _casaServices),
+      MinhasCasasPage(),
     ];
   }
 
@@ -47,11 +44,42 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Page'),
+        title: Text(''),
         centerTitle: true,
         backgroundColor: Colors.blueAccent,
+        // Imagem à esquerda
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: GestureDetector(
+            onTap: () {
+              print('Imagem clicada!');
+            },
+            child: CircleAvatar(
+              backgroundImage:
+                  AssetImage('assets/images/LOGO_CASA_PRINCIPAL.PNG'),
+              radius: 19, // Aumenta o tamanho da imagem
+            ),
+          ),
+        ),
+        // Ícone à direita
+        actions: [
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PerfilPage(), // Página de destino
+                ),
+              );
+            },
+            child: Icon(
+              Icons.person,
+              size: 30, // Aumenta o tamanho do ícone
+            ),
+          ),
+        ],
       ),
-      body: _pages[_selectedIndex], // Exibe a página selecionada
+      body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -67,9 +95,9 @@ class _HomePageState extends State<HomePage> {
             label: 'Minhas Casas',
           ),
         ],
-        currentIndex: _selectedIndex, // Define qual item está selecionado
+        currentIndex: _selectedIndex,
         selectedItemColor: Colors.blueAccent,
-        onTap: _onItemTapped, // Função chamada ao clicar no item
+        onTap: _onItemTapped,
       ),
     );
   }
