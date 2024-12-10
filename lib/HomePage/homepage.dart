@@ -6,6 +6,7 @@ import 'package:aluguel/casa/minhas_casas_page.dart';
 import 'package:aluguel/HomePage/TodasCasasPage.dart';
 import 'package:aluguel/casa/casa_model.dart';
 import 'package:aluguel/usuario/meu_perfil_page.dart';
+import 'package:aluguel/maps/mapa_page_geo.dart'; // Importando a página de mapa
 
 class HomePage extends StatefulWidget {
   @override
@@ -61,8 +62,9 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
-        // Ícone à direita
+        // Ícones à direita
         actions: [
+          // Ícone de perfil
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -74,6 +76,22 @@ class _HomePageState extends State<HomePage> {
             },
             child: Icon(
               Icons.person,
+              size: 30, // Aumenta o tamanho do ícone
+            ),
+          ),
+          SizedBox(width: 16), // Espaçamento entre os ícones
+          // Ícone de mapa
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MapaPage(), // Página de mapa
+                ),
+              );
+            },
+            child: Icon(
+              Icons.map,
               size: 30, // Aumenta o tamanho do ícone
             ),
           ),
