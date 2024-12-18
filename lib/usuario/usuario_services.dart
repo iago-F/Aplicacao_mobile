@@ -58,8 +58,7 @@ class UsuarioServices extends ChangeNotifier {
     return usuarioId; // Retorna o ID do usuário
   }
 
-  // Método para realizar o cadastro do usuário
-  Future<bool> cadastrar(Usuario usuario, File imageFile) async {
+  Future<bool> cadastrar(Usuario usuario, File? imageFile) async {
     try {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
@@ -72,32 +71,33 @@ class UsuarioServices extends ChangeNotifier {
       if (user != null) {
         usuario.id = user.uid;
 
-        // Salva a imagem no Firebase Storage e obtém a URL
-        String? imageUrl = await uploadImage(imageFile);
-        if (imageUrl != null) {
-          this.usuario = Usuario(
-            id: usuario.id,
-            nome: usuario.nome,
-            email: usuario.email,
-            senha: usuario.senha,
-            image: imageUrl, // Armazena a URL da imagem
-            cpf: usuario.cpf,
-            data_nascimento: usuario.data_nascimento,
-          );
-
-          debugPrint(usuario.id!);
-          salvarDetalhesUsuario();
-          notifyListeners(); // Notifica ouvintes sobre a mudança
-          return true;
-        } else {
-          debugPrint('Erro ao salvar a imagem.');
-          return false;
+        String? imageUrl;
+        // Salva a imagem apenas se imageFile for fornecido
+        if (imageFile != null) {
+          imageUrl = await uploadImage(imageFile);
         }
+
+        // Cria o objeto do usuário com ou sem a URL da imagem
+        this.usuario = Usuario(
+          id: usuario.id,
+          nome: usuario.nome,
+          email: usuario.email,
+          senha: usuario.senha,
+          image: imageUrl, // Pode ser null se não houver imagem
+          cpf: usuario.cpf,
+          data_nascimento: usuario.data_nascimento,
+        );
+
+        debugPrint(usuario.id!);
+        salvarDetalhesUsuario();
+        notifyListeners(); // Notifica ouvintes sobre a mudança
+        return true;
       } else {
         return false;
       }
     } on FirebaseAuthException catch (error) {
       // Tratamento de erro de autenticação
+      debugPrint('Erro no cadastro: $error');
       return false;
     }
   }
@@ -176,5 +176,96 @@ class UsuarioServices extends ChangeNotifier {
   // Método para obter a lista de usuários
   Stream<QuerySnapshot> getUsuarios() {
     return _colletionRef.snapshots();
+  }
+
+  // Método para atualizar os dados do usuário
+  Future<void> atualizarPerfil({
+    required String nome,
+    required String email,
+    DateTime? dataNascimento,
+    File? novaImagem,
+  }) async {
+    try {
+      // Atualizar dados de perfil no Firestore
+      DocumentReference usuarioRef = _firestore
+          .collection('usuarios')
+          .doc(usuarioId!); // Use usuarioId para pegar o ID correto
+
+      // Atualizando dados no Firestore
+      await usuarioRef.update({
+        'nome': nome,
+        'email': email,
+        'data_nascimento': dataNascimento,
+      });
+
+      // Se houver uma nova imagem, faz o upload
+      if (novaImagem != null) {
+        // Upload da imagem para o Firebase Storage
+        String? imagemUrl = await uploadImage(novaImagem);
+
+        // Se a URL da imagem não for nula, atualize a imagem
+        if (imagemUrl != null) {
+          await usuarioRef.update({'image': imagemUrl});
+        } else {
+          debugPrint('Falha ao carregar a imagem, URL nula.');
+        }
+      }
+
+      // Recarrega os dados do usuário
+      await UsuarioAtenticado();
+
+      // Notifica ouvintes sobre a atualização
+      notifyListeners();
+
+      debugPrint('Perfil atualizado com sucesso!');
+    } catch (e) {
+      debugPrint('Erro ao atualizar perfil: $e');
+      throw Exception('Erro ao atualizar perfil');
+    }
+  }
+
+  // Método para excluir a conta do usuário
+  Future<bool> excluirConta() async {
+    try {
+      // Primeiro, excluímos as casas vinculadas ao usuário
+      if (usuario != null) {
+        // Obtém uma lista de todas as casas associadas ao usuário
+        var casasQuerySnapshot = await _firestore
+            .collection(
+                'casas') // Supondo que a coleção das casas seja chamada 'casas'
+            .where('userId',
+                isEqualTo: usuario!.id) // Filtra as casas pelo 'userId'
+            .get();
+
+        // Exclui todas as casas associadas ao usuário
+        for (var casaDoc in casasQuerySnapshot.docs) {
+          await casaDoc.reference.delete(); // Exclui cada casa
+        }
+      }
+
+      // Excluímos a imagem de perfil, se existir
+      if (usuario!.image != null) {
+        await _storage.refFromURL(usuario!.image!).delete(); // Exclui a imagem
+      }
+
+      // Exclui o documento do usuário no Firestore
+      await _docRef.delete();
+
+      // Exclui o usuário do Firebase Authentication
+      User? user = _auth.currentUser;
+      await user?.delete();
+
+      // Após excluir o usuário, você pode limpar as informações do usuário localmente
+      usuario = null;
+      usuarioId = null;
+
+      // Notificar os ouvintes para que a UI seja atualizada
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      debugPrint('Erro ao excluir conta: $e');
+      return false;
+    }
   }
 }

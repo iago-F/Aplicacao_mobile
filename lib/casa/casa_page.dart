@@ -60,7 +60,7 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
         descricao: _descricaoController.text,
       );
 
-// Chama o método para cadastrar a casa
+      // Chama o método para cadastrar a casa
       bool success =
           await widget.casaServices.cadastrarCasa(novaCasa, _imageFile!);
       if (success) {
@@ -95,102 +95,68 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
           child: ListView(
             children: [
               // Campo para área
-              TextFormField(
+              _buildTextFormField(
                 controller: _areaController,
+                label: 'Área (m²)',
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Área (m²)'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe a área';
-                  }
-                  return null;
-                },
+                validator: (value) => value!.isEmpty ? 'Informe a área' : null,
               ),
 
               // Campo para número de banheiros
-              TextFormField(
+              _buildTextFormField(
                 controller: _banheirosController,
+                label: 'Número de Banheiros',
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Número de Banheiros'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o número de banheiros';
-                  }
-                  return null;
-                },
+                validator: (value) =>
+                    value!.isEmpty ? 'Informe o número de banheiros' : null,
               ),
 
               // Campo para preço total
-              TextFormField(
+              _buildTextFormField(
                 controller: _precoController,
+                label: 'Preço Total',
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Preço Total'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o preço total';
-                  }
-                  return null;
-                },
+                validator: (value) =>
+                    value!.isEmpty ? 'Informe o preço total' : null,
               ),
 
               // Campo para rua
-              TextFormField(
+              _buildTextFormField(
                 controller: _ruaController,
-                decoration: InputDecoration(labelText: 'Rua'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe a rua';
-                  }
-                  return null;
-                },
+                label: 'Rua',
+                validator: (value) => value!.isEmpty ? 'Informe a rua' : null,
               ),
 
               // Campo para bairro
-              TextFormField(
+              _buildTextFormField(
                 controller: _bairroController,
-                decoration: InputDecoration(labelText: 'Bairro'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o bairro';
-                  }
-                  return null;
-                },
+                label: 'Bairro',
+                validator: (value) =>
+                    value!.isEmpty ? 'Informe o bairro' : null,
               ),
 
               // Campo para cidade
-              TextFormField(
+              _buildTextFormField(
                 controller: _cidadeController,
-                decoration: InputDecoration(labelText: 'Cidade'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe a cidade';
-                  }
-                  return null;
-                },
+                label: 'Cidade',
+                validator: (value) =>
+                    value!.isEmpty ? 'Informe a cidade' : null,
               ),
 
               // Campo para estado
-              TextFormField(
+              _buildTextFormField(
                 controller: _estadoController,
-                decoration: InputDecoration(labelText: 'Estado'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o estado';
-                  }
-                  return null;
-                },
+                label: 'Estado',
+                validator: (value) =>
+                    value!.isEmpty ? 'Informe o estado' : null,
               ),
 
               // Campo para descrição
-              TextFormField(
+              _buildTextFormField(
                 controller: _descricaoController,
-                decoration: InputDecoration(labelText: 'Descrição'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe a descrição';
-                  }
-                  return null;
-                },
+                label: 'Descrição',
+                validator: (value) =>
+                    value!.isEmpty ? 'Informe a descrição' : null,
               ),
 
               SizedBox(height: 20),
@@ -221,6 +187,29 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // Método reutilizável para campos de texto
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.0), // Borda arredondada
+          ),
+        ),
+        validator: validator,
       ),
     );
   }
