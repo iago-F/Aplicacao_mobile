@@ -12,12 +12,17 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final UsuarioServices _usuarioServices = UsuarioServices();
+  bool isLoading = false;
 
   // Controladores dos campos
   TextEditingController emailController = TextEditingController();
   TextEditingController senhaController = TextEditingController();
 
-  void _login() async {
+  void _login(context) async {
+    setState(() {
+      isLoading = true; // Ativar carregamento
+    });
+
     if (_formKey.currentState!.validate()) {
       bool loginRealizado = await _usuarioServices.Login(
         email: emailController.text,
@@ -40,6 +45,10 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     }
+
+    setState(() {
+      isLoading = false; // Ativar carregamento
+    });
   }
 
   @override
@@ -106,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(
                   width: double.infinity, // Ocupa toda a largura disponível
                   child: ElevatedButton(
-                    onPressed: _login,
+                    onPressed: isLoading ? null : () => _login(context),
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(

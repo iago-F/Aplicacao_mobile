@@ -19,18 +19,20 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
   final _formKey = GlobalKey<FormState>();
 
   // Controladores para os campos do formulário
-  TextEditingController _areaController = TextEditingController();
-  TextEditingController _banheirosController = TextEditingController();
-  TextEditingController _precoController = TextEditingController();
-  TextEditingController _ruaController = TextEditingController();
-  TextEditingController _bairroController = TextEditingController();
-  TextEditingController _cidadeController = TextEditingController();
-  TextEditingController _estadoController = TextEditingController();
-  TextEditingController _descricaoController = TextEditingController();
+  final TextEditingController _areaController = TextEditingController();
+  final TextEditingController _banheirosController = TextEditingController();
+  final TextEditingController _precoController = TextEditingController();
+  final TextEditingController _ruaController = TextEditingController();
+  final TextEditingController _bairroController = TextEditingController();
+  final TextEditingController _cepController = TextEditingController();
+  final TextEditingController _cidadeController = TextEditingController();
+  final TextEditingController _estadoController = TextEditingController();
+  final TextEditingController _descricaoController = TextEditingController();
+  final TextEditingController _quartosController = TextEditingController();
 
   File? _imageFile;
+  bool _isLoading = false;
 
-  // Método para selecionar imagem da galeria
   Future<void> _pickImage() async {
     final pickedFile =
         await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -41,45 +43,70 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
     }
   }
 
-  // Método para cadastrar a casa
   Future<void> _cadastrarCasa() async {
     if (_formKey.currentState!.validate()) {
-      // Gerar um ID único para a casa
-      var uuid = Uuid();
-      String casaId = uuid.v4(); // Gerar um novo ID
+      setState(() {
+        _isLoading = true;
+      });
 
-      Casa novaCasa = Casa(
-        id_casa: casaId, // Atribuindo o ID gerado
-        area: double.parse(_areaController.text),
-        num_banheiro: int.parse(_banheirosController.text),
-        preco_total: double.parse(_precoController.text),
-        rua: _ruaController.text,
-        bairro: _bairroController.text,
-        cidade: _cidadeController.text,
-        estado: _estadoController.text,
-        descricao: _descricaoController.text,
-      );
+      try {
+        var uuid = Uuid();
+        String casaId = uuid.v4();
 
-      // Chama o método para cadastrar a casa
-      bool success =
-          await widget.casaServices.cadastrarCasa(novaCasa, _imageFile!);
-      if (success) {
-        // Exibe a mensagem de sucesso
+        Casa novaCasa = Casa(
+          id_casa: casaId,
+          area: double.parse(_areaController.text),
+          num_banheiro: int.parse(_banheirosController.text),
+          preco_total: double.parse(_precoController.text),
+          rua: _ruaController.text,
+          bairro: _bairroController.text,
+          cep: _cepController.text,
+          cidade: _cidadeController.text,
+          estado: _estadoController.text,
+          descricao: _descricaoController.text,
+          num_quarto: int.parse(_quartosController.text),
+        );
+
+        bool success =
+            await widget.casaServices.cadastrarCasa(novaCasa, _imageFile!);
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Casa cadastrada com sucesso!')),
+          );
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erro ao cadastrar a casa.')),
+          );
+        }
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Casa cadastrada com sucesso!')),
+          SnackBar(content: Text('Ocorreu um erro: $e')),
         );
-
-        // Redireciona para a HomePage
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao cadastrar a casa.')),
-        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
+  }
+
+  InputDecoration _buildInputDecoration(String hint) {
+    return InputDecoration(
+      labelText: hint,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: BorderSide(color: Colors.blue),
+      ),
+    );
   }
 
   @override
@@ -94,122 +121,107 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
           key: _formKey,
           child: ListView(
             children: [
-              // Campo para área
-              _buildTextFormField(
+              TextFormField(
                 controller: _areaController,
-                label: 'Área (m²)',
                 keyboardType: TextInputType.number,
-                validator: (value) => value!.isEmpty ? 'Informe a área' : null,
+                decoration: _buildInputDecoration('Área (m²)'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
-
-              // Campo para número de banheiros
-              _buildTextFormField(
+              SizedBox(height: 10),
+              TextFormField(
                 controller: _banheirosController,
-                label: 'Número de Banheiros',
                 keyboardType: TextInputType.number,
+                decoration: _buildInputDecoration('Número de Banheiros'),
                 validator: (value) =>
-                    value!.isEmpty ? 'Informe o número de banheiros' : null,
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
-
-              // Campo para preço total
-              _buildTextFormField(
+              SizedBox(height: 10),
+              TextFormField(
+                controller: _quartosController,
+                keyboardType: TextInputType.number,
+                decoration: _buildInputDecoration('Número de Quartos'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
+              ),
+              SizedBox(height: 10),
+              TextFormField(
                 controller: _precoController,
-                label: 'Preço Total',
                 keyboardType: TextInputType.number,
+                decoration: _buildInputDecoration('Preço (R\$)'),
                 validator: (value) =>
-                    value!.isEmpty ? 'Informe o preço total' : null,
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
-
-              // Campo para rua
-              _buildTextFormField(
+              SizedBox(height: 10),
+              TextFormField(
                 controller: _ruaController,
-                label: 'Rua',
-                validator: (value) => value!.isEmpty ? 'Informe a rua' : null,
+                decoration: _buildInputDecoration('Rua'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
-
-              // Campo para bairro
-              _buildTextFormField(
+              SizedBox(height: 10),
+              TextFormField(
                 controller: _bairroController,
-                label: 'Bairro',
+                decoration: _buildInputDecoration('Bairro'),
                 validator: (value) =>
-                    value!.isEmpty ? 'Informe o bairro' : null,
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
-
-              // Campo para cidade
-              _buildTextFormField(
+              SizedBox(height: 10),
+              TextFormField(
+                controller: _cepController,
+                decoration: _buildInputDecoration('CEP'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
+              ),
+              SizedBox(height: 10),
+              TextFormField(
                 controller: _cidadeController,
-                label: 'Cidade',
+                decoration: _buildInputDecoration('Cidade'),
                 validator: (value) =>
-                    value!.isEmpty ? 'Informe a cidade' : null,
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
-
-              // Campo para estado
-              _buildTextFormField(
+              SizedBox(height: 10),
+              TextFormField(
                 controller: _estadoController,
-                label: 'Estado',
+                decoration: _buildInputDecoration('Estado'),
                 validator: (value) =>
-                    value!.isEmpty ? 'Informe o estado' : null,
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
-
-              // Campo para descrição
-              _buildTextFormField(
+              SizedBox(height: 10),
+              TextFormField(
                 controller: _descricaoController,
-                label: 'Descrição',
+                maxLines: 3,
+                decoration: _buildInputDecoration('Descrição'),
                 validator: (value) =>
-                    value!.isEmpty ? 'Informe a descrição' : null,
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
-
               SizedBox(height: 20),
-
-              // Botão para escolher imagem
-              ElevatedButton(
+              // Botão para selecionar imagem
+              TextButton.icon(
                 onPressed: _pickImage,
-                child: Text('Escolher Imagem'),
+                icon: Icon(Icons.image),
+                label: Text('Selecionar Imagem'),
               ),
-
-              // Exibe a imagem escolhida, se houver
-              _imageFile != null
-                  ? Image.file(
-                      _imageFile!,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
-                  : Text('Nenhuma imagem selecionada'),
-
+              if (_imageFile != null)
+                Image.file(
+                  _imageFile!,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
               SizedBox(height: 20),
-
-              // Botão para cadastrar a casa
+              // Botão de cadastrar
               ElevatedButton(
-                onPressed: _cadastrarCasa,
-                child: Text('Cadastrar Casa'),
+                onPressed: _isLoading ? null : _cadastrarCasa,
+                child: _isLoading
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text('Cadastrar Casa'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 50),
+                ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  // Método reutilizável para campos de texto
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String label,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.0), // Borda arredondada
-          ),
-        ),
-        validator: validator,
       ),
     );
   }
