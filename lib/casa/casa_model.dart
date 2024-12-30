@@ -4,7 +4,7 @@ class Casa {
   String? imagem;
   String? rua;
   String? bairro;
-  String? cep; // Novo campo adicionado
+  String? cep;
   String? cidade;
   String? estado;
   String? descricao;

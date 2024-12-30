@@ -83,7 +83,8 @@ class PerfilPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: ElevatedButton.icon(
                       icon: Icon(Icons.edit),
-                      label: Text('Editar Perfil'),
+                      label: Text('Editar Perfil',
+                          style: TextStyle(color: Colors.blue)),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -99,6 +100,9 @@ class PerfilPage extends StatelessWidget {
                         ),
                         padding:
                             EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                        backgroundColor:
+                            Colors.white, // Altere para backgroundColor
+                        side: BorderSide(color: Colors.blue),
                       ),
                     ),
                   ),

@@ -113,7 +113,15 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cadastrar Casa'),
+        title: const Text(
+          'Cadastrar Casa',
+          style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0), // Cor do título
+            fontSize: 20, // Tamanho da fonte
+          ),
+        ),
+        backgroundColor:
+            Color.fromARGB(255, 255, 255, 255), // Cor de fundo da AppBar
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

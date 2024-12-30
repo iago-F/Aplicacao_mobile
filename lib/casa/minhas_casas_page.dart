@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aluguel/casa/casa_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aluguel/casa/minhas_casas_detalhe_page.dart';
+import 'package:aluguel/agendamento/meus_agendamentos_page.dart';
 
 class MinhasCasasPage extends StatelessWidget {
   final String usuarioId;
@@ -15,7 +16,31 @@ class MinhasCasasPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Minhas Casas'),
+        title: const Text(
+          'Minhas Casas',
+          style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0), // Cor do título
+            fontSize: 20, // Tamanho da fonte
+          ),
+        ),
+        backgroundColor:
+            Color.fromARGB(255, 255, 255, 255), // Cor de fundo da AppBar
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_today,
+                color: Color.fromARGB(255, 22, 22, 22)),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MinhasVisitasPage(
+                    userId: usuarioId,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -24,20 +49,20 @@ class MinhasCasasPage extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('Nenhuma casa cadastrada.'));
+            return const Center(child: Text('Nenhuma casa cadastrada.'));
           }
           return ListView(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             children: snapshot.data!.docs.map((doc) {
               Casa casa = Casa.fromJson(doc.data() as Map<String, dynamic>)
                 ..id_casa = doc.id;
 
               return Card(
                 elevation: 4,
-                margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
@@ -51,7 +76,7 @@ class MinhasCasasPage extends StatelessWidget {
                     );
                   },
                   child: Padding(
-                    padding: EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(12),
                     child: Row(
                       children: [
                         ClipRRect(
@@ -69,30 +94,30 @@ class MinhasCasasPage extends StatelessWidget {
                                   color: Colors.grey.shade400,
                                 ),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 casa.cidade ?? 'Casa sem endereço',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Bairro: ${casa.bairro ?? 'Não disponível'}',
-                                    style: TextStyle(fontSize: 14),
+                                    style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Text(
                                 'Valor Total: R\$${casa.preco_total?.toString() ?? 'Não disponível'}',
                                 style: TextStyle(

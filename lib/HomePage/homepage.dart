@@ -46,7 +46,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(''),
         centerTitle: true,
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue[300],
         // Imagem à esquerda
         leading: Padding(
           padding: const EdgeInsets.only(left: 8.0),
@@ -74,7 +74,7 @@ class _HomePageState extends State<HomePage> {
             },
             child: Icon(
               Icons.person,
-              size: 30, // Aumenta o tamanho do ícone
+              size: 45, // Aumenta o tamanho do ícone
             ),
           ),
         ],
@@ -96,7 +96,10 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blueAccent,
+        selectedItemColor: Colors.blue[300], // Cor dos itens selecionados
+        unselectedItemColor: Colors.black54, // Cor dos itens não selecionados
+        backgroundColor: const Color.fromARGB(
+            255, 239, 240, 241), // Cor de fundo do BottomNavigationBar
         onTap: _onItemTapped,
       ),
     );
