@@ -29,9 +29,11 @@ class _HomePageState extends State<HomePage> {
     _casaServices = CasaServices(_usuarioServices);
 
     _pages = [
-      TodasCasasPage(casaServices: _casaServices),
-      CadastrarCasaPage(casaServices: _casaServices),
-      MinhasCasasPage(),
+      TodasCasasPage(casaServices: _casaServices), // Página inicial
+      CadastrarCasaPage(
+          casaServices: _casaServices), // Página de cadastro de casas
+      MinhasCasasPage(), // Página de "Minhas Casas"
+      MapPage(),
     ];
   }
 
@@ -80,24 +82,9 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           SizedBox(width: 16), // Espaçamento entre os ícones
-          // Ícone de mapa
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MapaPage(), // Página de mapa
-                ),
-              );
-            },
-            child: Icon(
-              Icons.map,
-              size: 30, // Aumenta o tamanho do ícone
-            ),
-          ),
         ],
       ),
-      body: _pages[_selectedIndex],
+      body: _pages[_selectedIndex], // Exibe a página selecionada
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -112,10 +99,17 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.my_library_books),
             label: 'Minhas Casas',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.share_location_outlined), // Ícone do mapa
+            label: 'Mapa',
+          ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blueAccent,
-        onTap: _onItemTapped,
+        selectedItemColor: Colors.blue[300], // Cor dos itens selecionados
+        unselectedItemColor: Colors.black54, // Cor dos itens não selecionados
+        backgroundColor: const Color.fromARGB(
+            255, 239, 240, 241), // Cor de fundo do BottomNavigationBar
+        onTap: _onItemTapped, // Navega para a página clicada
       ),
     );
   }
