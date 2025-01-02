@@ -5,7 +5,7 @@ import 'package:aluguel/usuario/usuario_services.dart';
 import 'package:aluguel/casa/minhas_casas_page.dart';
 import 'package:aluguel/HomePage/TodasCasasPage.dart';
 import 'package:aluguel/usuario/meu_perfil_page.dart';
-import 'package:aluguel/maps/mapa_page_geo.dart'; // Importando a página de mapa
+import 'package:aluguel/maps/mapa_page_geo.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             },
-            child: Icon(
+            child: const Icon(
               Icons.person,
               size: 45, // Aumenta o tamanho do ícone
             ),

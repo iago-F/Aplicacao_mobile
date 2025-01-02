@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:aluguel/maps/casa_service_geo.dart';
+import 'package:aluguel/HomePage/casa_detalhes_page.dart'; // Importe a página CasaDetalhesPage
+import 'package:aluguel/casa/casa_model.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -31,10 +33,13 @@ class MapPageState extends State<MapPage> {
 
   void _loadHouses() async {
     try {
-      final casas = await _geocodingService.fetchCasas();
-      for (var casa in casas) {
-        if (casa['latitude'] != null && casa['longitude'] != null) {
-          _addMarker(casa['latitude'], casa['longitude'], casa['endereco']);
+      final casasData = await _geocodingService.fetchCasas();
+      for (var casaData in casasData) {
+        if (casaData['latitude'] != null && casaData['longitude'] != null) {
+          Casa casa = Casa.fromJson(
+              casaData); // Passa o mapa completo para a classe Casa
+          _addMarker(
+              casa.latitude!.toDouble(), casa.longitude!.toDouble(), casa);
         }
       }
     } catch (e) {
@@ -42,17 +47,28 @@ class MapPageState extends State<MapPage> {
     }
   }
 
-  // Função para adicionar marcador no mapa
-  // Função para adicionar marcador no mapa com o ícone customizado
-  void _addMarker(double lat, double lng, String houseId) {
-    print("Adicionando marcador para a casa $houseId: Lat: $lat, Lng: $lng");
+  void _addMarker(double lat, double lng, Casa casa) {
+    print(
+        "Adicionando marcador para a casa ${casa.id_casa}: Lat: $lat, Lng: $lng");
     if (customIcon != null) {
       setState(() {
         _markers.add(Marker(
-          markerId: MarkerId(houseId),
+          markerId: MarkerId(casa.id_casa.toString()),
           position: LatLng(lat, lng),
-          infoWindow: InfoWindow(title: 'Casa $houseId'),
-          icon: customIcon!, // Usando o ícone personalizado
+          infoWindow: InfoWindow(title: 'Casa ${casa.id_casa}'),
+          icon: customIcon!,
+          onTap: () {
+            // Navegar para a página de detalhes da casa, passando o objeto Casa
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CasaDetalhesPage(
+                  casa:
+                      casa, // Passando o objeto Casa para a página de detalhes
+                ),
+              ),
+            );
+          },
         ));
       });
     }

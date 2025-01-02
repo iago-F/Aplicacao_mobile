@@ -8,41 +8,44 @@ class GeocodingService {
   // Método para buscar casas do Firestore
   Future<List<Map<String, dynamic>>> fetchCasas() async {
     try {
-      // Busca as casas no Firestore
       QuerySnapshot snapshot = await _firestore.collection('casas').get();
 
       List<Map<String, dynamic>> casas = [];
 
-      // Criar uma lista de futures para as requisições de coordenadas
       List<Future<void>> tasks = snapshot.docs.map((doc) async {
         var data = doc.data() as Map<String, dynamic>;
 
-        // Obtém os componentes do endereço
-        var rua = data['rua'] ?? '';
-        var bairro = data['bairro'] ?? '';
-        var estado = data['estado'] ?? '';
-        var cidade = data['cidade'] ?? '';
+        // Inclua os dados principais da casa
+        var casa = {
+          'id_casa': doc.id,
+          'imagem': data['imagem'] ?? 'N/A',
+          'preco_total': data['preco_total'] ?? 'N/A',
+          'descricao': data['descricao'] ?? 'N/A',
+          'num_quarto': data['num_quarto'] ?? 0,
+          'num_banheiro': data['num_banheiro'] ?? 0,
+          'area': data['area'] ?? 0,
+          'fotos': data['fotos'] ?? [],
+          'rua': data['rua'] ?? '',
+          'bairro': data['bairro'] ?? '',
+          'estado': data['estado'] ?? '',
+          'cidade': data['cidade'] ?? '',
+        };
 
-        // Concatena os componentes do endereço
-        var enderecoCompleto = '$cidade, $bairro, $estado, $rua';
+        // Concatene o endereço completo
+        var enderecoCompleto =
+            '${casa['cidade']}, ${casa['bairro']}, ${casa['estado']}, ${casa['rua']}';
 
         try {
-          // Converte o endereço completo para lat/lon
           var latLon = await getLatLonFromEndereco(enderecoCompleto);
-
-          // Adiciona as informações na lista de casas
-          casas.add({
-            'endereco': enderecoCompleto,
-            'latitude': latLon['latitude'],
-            'longitude': latLon['longitude'],
-          });
+          casa['latitude'] = latLon['latitude'];
+          casa['longitude'] = latLon['longitude'];
+          casas.add(casa);
         } catch (e) {
           print(
               "Erro ao obter coordenadas para o endereço: $enderecoCompleto. Erro: $e");
         }
       }).toList();
 
-      // Aguarda todas as requisições de coordenadas
       await Future.wait(tasks);
 
       return casas;

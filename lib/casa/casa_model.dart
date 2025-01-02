@@ -12,6 +12,8 @@ class Casa {
   double? preco_total;
   int? num_banheiro;
   int? num_quarto;
+  double? latitude;
+  double? longitude;
 
   // Construtor
   Casa({
@@ -20,7 +22,7 @@ class Casa {
     this.imagem,
     this.rua,
     this.bairro,
-    this.cep, // Novo campo incluído no construtor
+    this.cep,
     this.cidade,
     this.estado,
     this.descricao,
@@ -28,6 +30,8 @@ class Casa {
     this.preco_total,
     this.num_banheiro,
     this.num_quarto,
+    this.latitude,
+    this.longitude,
   });
 
   // Converte um objeto Casa para um mapa (necessário para salvar no Firestore)
@@ -38,7 +42,7 @@ class Casa {
       'imagem': imagem,
       'rua': rua,
       'bairro': bairro,
-      'cep': cep, // Adicionado ao método toJson
+      'cep': cep,
       'cidade': cidade,
       'estado': estado,
       'descricao': descricao,
@@ -46,6 +50,8 @@ class Casa {
       'preco_total': preco_total,
       'num_banheiro': num_banheiro,
       'num_quarto': num_quarto,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -57,7 +63,7 @@ class Casa {
       imagem: json['imagem'],
       rua: json['rua'],
       bairro: json['bairro'],
-      cep: json['cep'], // Adicionado ao construtor factory
+      cep: json['cep'],
       cidade: json['cidade'],
       estado: json['estado'],
       descricao: json['descricao'],
@@ -65,6 +71,8 @@ class Casa {
       preco_total: json['preco_total'],
       num_banheiro: json['num_banheiro'],
       num_quarto: json['num_quarto'],
+      latitude: json['latitude'],
+      longitude: json['longitude'],
     );
   }
 }
