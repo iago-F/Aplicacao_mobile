@@ -3,13 +3,13 @@ import 'package:aluguel/casa/casa_model.dart';
 import 'package:aluguel/casa/casa_service.dart';
 import 'package:provider/provider.dart'; // Importação do Provider
 import 'minhas_casas_page.dart'; // Importe a página MinhasCasasPage
+import 'editar_casa_page.dart'; // Importe a página EditarCasaPage (certifique-se de ter essa página)
 
 class CasaDetalhesPage extends StatelessWidget {
   final Casa casa;
 
   CasaDetalhesPage({required this.casa});
 
-  // Função para mostrar o diálogo de confirmação de exclusão
   void _confirmarExclusao(BuildContext context, String casaId) {
     showDialog(
       context: context,
@@ -20,14 +20,12 @@ class CasaDetalhesPage extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () {
-                // Fecha o diálogo sem fazer nada
                 Navigator.of(context).pop();
               },
               child: Text('Cancelar'),
             ),
             TextButton(
               onPressed: () async {
-                // Chama a função para excluir a casa
                 bool sucesso =
                     await Provider.of<CasaServices>(context, listen: false)
                         .excluirCasa(casaId);
@@ -37,12 +35,10 @@ class CasaDetalhesPage extends StatelessWidget {
                     SnackBar(content: Text('Casa excluída com sucesso.')),
                   );
 
-                  // Redireciona para a página MinhasCasasPage após a exclusão
-                  Navigator.of(context).pop(); // Fecha o diálogo
+                  Navigator.of(context).pop();
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => MinhasCasasPage()), // Redireciona
+                    MaterialPageRoute(builder: (context) => MinhasCasasPage()),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -50,7 +46,6 @@ class CasaDetalhesPage extends StatelessWidget {
                   );
                 }
 
-                // Fecha o diálogo após a ação
                 Navigator.of(context).pop();
               },
               child: Text('Excluir', style: TextStyle(color: Colors.red)),
@@ -63,92 +58,136 @@ class CasaDetalhesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final casaServices =
+        Provider.of<CasaServices>(context); // Obtém o serviço de casas
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Detalhes da Casa'),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
           children: [
             if (casa.imagem != null)
               Center(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius:
+                      BorderRadius.circular(0), // Removido o arredondamento
                   child: Image.network(
                     casa.imagem!,
-                    width: double.infinity,
-                    height: 220,
-                    fit: BoxFit.cover,
+                    width:
+                        double.infinity, // Faz a imagem ocupar toda a largura
+                    height: 250, // Altura da imagem
+                    fit: BoxFit
+                        .cover, // Faz a imagem cobrir toda a área disponível
                   ),
                 ),
+              )
+            else
+              Center(
+                child: CircleAvatar(
+                  radius: 60,
+                  child: Icon(Icons.home, size: 40),
+                ),
               ),
-            SizedBox(height: 24),
-
-            // Primeira linha com "Rua" e "Bairro"
+            SizedBox(height: 16),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(child: _buildInfoRow('Rua:', casa.rua)),
-                SizedBox(width: 16),
-                Expanded(child: _buildInfoRow('Bairro:', casa.bairro)),
+                _buildInfoRow(
+                    'Quartos', casa.num_quarto?.toString() ?? 'Não disponível'),
+                _buildInfoRow('Banheiros',
+                    casa.num_banheiro?.toString() ?? 'Não disponível'),
               ],
             ),
-            SizedBox(height: 15),
-
+            SizedBox(height: 16),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(child: _buildInfoRow('Cidade:', casa.cidade)),
-                SizedBox(width: 16),
-                Expanded(child: _buildInfoRow('UF:', casa.estado)),
+                _buildInfoRow('Rua', casa.rua),
+                _buildInfoRow('Bairro', casa.bairro),
               ],
             ),
-            SizedBox(height: 15),
-
+            SizedBox(height: 16),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                    child: _buildInfoRow('Área:',
-                        '${casa.area?.toString() ?? 'Não disponível'} m²')),
+                _buildInfoRow('Cidade', casa.cidade),
+                _buildInfoRow('UF', casa.estado),
               ],
             ),
-
-            SizedBox(height: 15),
-
+            SizedBox(height: 16),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                    child: _buildInfoRow('Valor total:',
-                        'R\$ ${casa.preco_total?.toString() ?? 'Não disponível'}')),
+                _buildInfoRow(
+                    'Área', '${casa.area?.toString() ?? 'Não disponível'} m²'),
+                _buildInfoRow('Valor',
+                    'R\$ ${casa.preco_total?.toString() ?? 'Não disponível'}'),
               ],
             ),
-
-            SizedBox(height: 15),
-
-            // Descrição
+            SizedBox(height: 16),
             Text(
               'Descrição:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 15),
+            SizedBox(height: 8),
             Text(
               casa.descricao ?? 'Sem descrição',
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
-
-            SizedBox(height: 15),
-
-            // Botão para excluir a casa
+            SizedBox(height: 32),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  color: Colors.red,
-                  iconSize:
-                      39.0, // Define o tamanho do ícone, ajuste conforme necessário
-                  onPressed: () => _confirmarExclusao(context, casa.id_casa!),
+                ElevatedButton.icon(
+                  icon: Icon(Icons.edit,
+                      color: Colors.blue), // Ícone de edição em azul
+                  label:
+                      Text('Editar Casa', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditarCasaPage(
+                          casa: casa
+                              .toJson(), // Passando a casa como Map<String, dynamic>
+                          casaId: casa.id_casa!, // Passando o id da casa
+                          casaServices:
+                              casaServices, // Passando o serviço de casas
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white, // Fundo branco
+                    foregroundColor: Colors.blue, // Texto e ícone azuis
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      side: BorderSide(color: Colors.blue), // Borda azul
+                    ),
+                  ),
                 ),
+
+                ElevatedButton.icon(
+                  icon: Icon(Icons.delete,
+                      color: Colors.red), // Ícone da lixeira em vermelho
+                  label: Text('Excluir Casa',
+                      style: TextStyle(color: Colors.red)), // Texto em vermelho
+                  onPressed: () => _confirmarExclusao(context, casa.id_casa!),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white, // Fundo branco
+                    foregroundColor: Colors.red, // Texto e ícone vermelhos
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      side: BorderSide(color: Colors.red), // Borda vermelha
+                    ),
+                  ),
+                ),
+                SizedBox(width: 16), // Espaçamento entre os botões
               ],
             ),
           ],
@@ -158,21 +197,21 @@ class CasaDetalhesPage extends StatelessWidget {
   }
 
   Widget _buildInfoRow(String title, String? value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: Text(
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text(
             value ?? 'Não disponível',
             style: TextStyle(fontSize: 16, color: Colors.grey[700]),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

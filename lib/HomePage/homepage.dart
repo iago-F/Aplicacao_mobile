@@ -4,7 +4,6 @@ import 'package:aluguel/casa/casa_service.dart';
 import 'package:aluguel/usuario/usuario_services.dart';
 import 'package:aluguel/casa/minhas_casas_page.dart';
 import 'package:aluguel/HomePage/TodasCasasPage.dart';
-import 'package:aluguel/casa/casa_model.dart';
 import 'package:aluguel/usuario/meu_perfil_page.dart';
 import 'package:aluguel/maps/mapa_page_geo.dart'; // Importando a página de mapa
 
@@ -49,7 +48,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(''),
         centerTitle: true,
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue[300],
         // Imagem à esquerda
         leading: Padding(
           padding: const EdgeInsets.only(left: 8.0),
@@ -78,7 +77,7 @@ class _HomePageState extends State<HomePage> {
             },
             child: Icon(
               Icons.person,
-              size: 30, // Aumenta o tamanho do ícone
+              size: 45, // Aumenta o tamanho do ícone
             ),
           ),
           SizedBox(width: 16), // Espaçamento entre os ícones

@@ -4,13 +4,14 @@ class Casa {
   String? imagem;
   String? rua;
   String? bairro;
+  String? cep;
   String? cidade;
   String? estado;
   String? descricao;
   double? area;
   double? preco_total;
   int? num_banheiro;
-  //num_quartos --> implementar
+  int? num_quarto;
 
   // Construtor
   Casa({
@@ -19,12 +20,14 @@ class Casa {
     this.imagem,
     this.rua,
     this.bairro,
+    this.cep, // Novo campo incluído no construtor
     this.cidade,
     this.estado,
     this.descricao,
     this.area,
     this.preco_total,
     this.num_banheiro,
+    this.num_quarto,
   });
 
   // Converte um objeto Casa para um mapa (necessário para salvar no Firestore)
@@ -35,12 +38,14 @@ class Casa {
       'imagem': imagem,
       'rua': rua,
       'bairro': bairro,
+      'cep': cep, // Adicionado ao método toJson
       'cidade': cidade,
       'estado': estado,
       'descricao': descricao,
       'area': area,
       'preco_total': preco_total,
       'num_banheiro': num_banheiro,
+      'num_quarto': num_quarto,
     };
   }
 
@@ -52,12 +57,14 @@ class Casa {
       imagem: json['imagem'],
       rua: json['rua'],
       bairro: json['bairro'],
+      cep: json['cep'], // Adicionado ao construtor factory
       cidade: json['cidade'],
       estado: json['estado'],
       descricao: json['descricao'],
       area: json['area'],
       preco_total: json['preco_total'],
       num_banheiro: json['num_banheiro'],
+      num_quarto: json['num_quarto'],
     );
   }
 }
