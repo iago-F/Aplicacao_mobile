@@ -46,7 +46,7 @@ class MinhasVisitasPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Visitas Agendadas'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue[300],
       ),
       body: FutureBuilder<List<VisitaModel>>(
         future: _listarVisitasDoUsuario(),

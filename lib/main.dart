@@ -60,38 +60,71 @@ class MyApp extends StatelessWidget {
             onSurface: const Color.fromARGB(
                 255, 67, 65, 65), // Cor do texto ou ícones sobre 'surface'
           ),
+
+          // Configuração do cursor e seleção
+          textSelectionTheme: TextSelectionThemeData(
+            cursorColor:
+                Color.fromARGB(255, 99, 154, 255), // Cor do ponteiro (cursor)
+            selectionColor:
+                Colors.grey.withOpacity(0.3), // Cor da seleção de texto
+            selectionHandleColor: Colors.black, // Cor dos "handles" de seleção
+          ),
+
           // Configuração do AppBar
           appBarTheme: AppBarTheme(
             backgroundColor: Colors.blue, // Cor do AppBar
             foregroundColor: Colors.white, // Cor do texto ou ícones no AppBar
           ),
+
           // Configuração dos Botões
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white, // Cor de fundo do botão
-              foregroundColor: const Color.fromARGB(
+              foregroundColor: Color.fromARGB(
                   255, 255, 255, 255), // Cor do texto ou ícones no botão
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
           ),
+
           // Configuração dos Inputs
           inputDecorationTheme: InputDecorationTheme(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
-                  color: Color.fromARGB(255, 0, 0, 0),
-                  width: 1.8), // Borda laranja
+                color: Color.fromARGB(221, 74, 72, 72), // Cor padrão da borda
+                width: 1.8,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
-                  color: const Color.fromARGB(255, 0, 0, 0),
-                  width: 1.8), // Borda laranja
+                color: Color.fromARGB(
+                    221, 74, 72, 72), // Cor da borda quando habilitado
+                width: 1.8,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color:
+                    Color.fromARGB(255, 99, 154, 255), // Cor da borda ao focar
+                width: 1.8,
+              ),
+            ),
+            focusColor: Colors.transparent, // Remove cor de foco interna
+            labelStyle: TextStyle(
+              color: const Color.fromARGB(
+                  255, 0, 0, 0), // Cor da label quando não está focada
+            ),
+            floatingLabelStyle: TextStyle(
+              color: Color.fromARGB(
+                  255, 99, 154, 255), // Cor da label quando está focada
             ),
           ),
         ),
+
         home: LoginPage(), // Aqui você pode definir a página inicial
       ),
     );

@@ -15,7 +15,6 @@ class CasaServices extends ChangeNotifier {
 
   // Getter para acessar a lista de casas
   List<Casa> get casas => _casas;
-
   // Método para cadastrar uma casa
   Future<bool> cadastrarCasa(Casa casa, File imageFile) async {
     try {
