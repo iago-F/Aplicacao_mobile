@@ -69,13 +69,13 @@ class CasaDetalhesPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            if (casa.imagem != null)
+            if (casa.Imagem != null)
               Center(
                 child: ClipRRect(
                   borderRadius:
                       BorderRadius.circular(0), // Removido o arredondamento
                   child: Image.network(
-                    casa.imagem!,
+                    casa.Imagem!.toString(),
                     width:
                         double.infinity, // Faz a imagem ocupar toda a largura
                     height: 250, // Altura da imagem

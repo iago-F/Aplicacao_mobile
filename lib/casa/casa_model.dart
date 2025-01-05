@@ -1,7 +1,7 @@
 class Casa {
   String? id_casa;
   String? id_usuario;
-  String? imagem;
+  List<String>? Imagem; // Alterado para uma lista de imagens
   String? rua;
   String? bairro;
   String? cep;
@@ -15,11 +15,10 @@ class Casa {
   double? latitude;
   double? longitude;
 
-  // Construtor
   Casa({
     this.id_casa,
     this.id_usuario,
-    this.imagem,
+    this.Imagem, // Lista de imagens
     this.rua,
     this.bairro,
     this.cep,
@@ -34,12 +33,11 @@ class Casa {
     this.longitude,
   });
 
-  // Converte um objeto Casa para um mapa (necessário para salvar no Firestore)
   Map<String, dynamic> toJson() {
     return {
       'id_casa': id_casa,
       'id_usuario': id_usuario,
-      'imagem': imagem,
+      'imagens': Imagem, // Lista de imagens
       'rua': rua,
       'bairro': bairro,
       'cep': cep,
@@ -55,12 +53,12 @@ class Casa {
     };
   }
 
-  // Construtor para criar uma instância de Casa a partir de um mapa
   factory Casa.fromJson(Map<String, dynamic> json) {
     return Casa(
       id_casa: json['id_casa'],
       id_usuario: json['id_usuario'],
-      imagem: json['imagem'],
+      Imagem: List<String>.from(
+          json['imagens'] ?? []), // Convertendo a lista de imagens
       rua: json['rua'],
       bairro: json['bairro'],
       cep: json['cep'],

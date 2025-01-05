@@ -16,32 +16,37 @@ class CasaServices extends ChangeNotifier {
   // Getter para acessar a lista de casas
   List<Casa> get casas => _casas;
   // Método para cadastrar uma casa
-  Future<bool> cadastrarCasa(Casa casa, File imageFile) async {
+  // Método para cadastrar uma casa com múltiplas imagens
+  Future<bool> cadastrarCasa(Casa casa, List<File> imageFiles) async {
     try {
-      // Obtém o ID do usuário logado
       String? usuarioId = _usuarioServices.getUsuarioId();
       if (usuarioId == null) {
         debugPrint('Usuário não autenticado. Cadastro da casa falhou.');
         return false;
       }
 
-      // Adiciona o ID do usuário à casa
       casa.id_usuario = usuarioId;
-
-      // Gera um ID único para a casa
       String casaId = _firestore.collection('casas').doc().id;
-      casa.id_casa = casaId; // Atualiza o ID da casa
+      casa.id_casa = casaId;
 
-      // Salva a imagem no Firebase Storage e obtém a URL
-      String? imageUrl = await uploadImage(imageFile, casaId);
-      if (imageUrl != null) {
-        casa.imagem = imageUrl; // Armazena a URL da imagem
-      } else {
-        debugPrint('Erro ao obter a URL da imagem. Cadastro da casa falhou.');
-        return false;
+      // Lista para armazenar as URLs das imagens
+      List<String> imageUrls = [];
+
+      // Fazendo o upload das imagens
+      for (var imageFile in imageFiles) {
+        String? imageUrl = await uploadImage(imageFile, casaId);
+        if (imageUrl != null) {
+          imageUrls.add(imageUrl);
+        } else {
+          debugPrint('Erro ao obter a URL da imagem. Cadastro da casa falhou.');
+          return false;
+        }
       }
 
-      // Adiciona a casa ao Firestore com o ID gerado
+      // Adiciona as URLs das imagens à casa
+      casa.Imagem = imageUrls;
+
+      // Salva a casa no Firestore
       await _firestore.collection('casas').doc(casaId).set(casa.toJson());
 
       // Atualiza a lista local de casas e notifica os ouvintes
@@ -58,12 +63,11 @@ class CasaServices extends ChangeNotifier {
 // Método para fazer upload da imagem
   Future<String?> uploadImage(File image, String casaId) async {
     try {
-      // Cria uma referência para o arquivo de imagem no Storage
-      String filePath = 'casas/$casaId/imagem.jpg';
+      String filePath =
+          'casas/$casaId/imagem_${DateTime.now().millisecondsSinceEpoch}.jpg';
       TaskSnapshot snapshot =
           await FirebaseStorage.instance.ref(filePath).putFile(image);
 
-      // Obtém a URL de download da imagem
       String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {

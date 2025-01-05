@@ -96,9 +96,9 @@ class MinhasVisitasPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      leading: casa?.imagem != null
+                      leading: casa?.Imagem != null
                           ? Image.network(
-                              casa!.imagem!,
+                              casa!.Imagem!.toString(),
                               width: 90,
                               height: 90,
                               fit: BoxFit.cover,

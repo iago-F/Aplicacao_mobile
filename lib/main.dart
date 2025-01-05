@@ -123,6 +123,12 @@ class MyApp extends StatelessWidget {
                   255, 99, 154, 255), // Cor da label quando está focada
             ),
           ),
+          // Configuração para links interativos e botões de texto
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.amber[600], // Cor do texto do botão/link
+            ),
+          ),
         ),
 
         home: LoginPage(), // Aqui você pode definir a página inicial

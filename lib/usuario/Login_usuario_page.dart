@@ -133,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
 
-                SizedBox(height: 16),
+                SizedBox(height: 5),
                 Align(
                   alignment: Alignment.centerRight, // Alinha à direita
                   child: TextButton(
@@ -147,8 +147,10 @@ class _LoginPageState extends State<LoginPage> {
                     child: Text(
                       'Não tem uma conta? Cadastre-se aqui.',
                       style: TextStyle(
-                        fontSize: 12, // Altere para o tamanho desejado
-                      ),
+                          fontSize: 12,
+                          color: Color.fromARGB(255, 255, 179,
+                              0) // Altere para o tamanho desejado
+                          ),
                     ),
                   ),
                 ),

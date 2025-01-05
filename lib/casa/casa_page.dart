@@ -30,17 +30,42 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
   final TextEditingController _descricaoController = TextEditingController();
   final TextEditingController _quartosController = TextEditingController();
 
-  File? _imageFile;
+  List<File> _imageFiles = []; // Alterei de File? para List<File>
   bool _isLoading = false;
+  int _currentPage = 0; // Variável para controle do indicador de página
 
-  Future<void> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+  Future<void> _selectImages() async {
+    if (_imageFiles.length > 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Você pode adicionar no máximo 5 imagens!')),
+      );
+      return; // Impede a seleção de mais imagens
     }
+
+    final ImagePicker _picker = ImagePicker();
+    final List<XFile>? selectedImages = await _picker.pickMultiImage();
+
+    if (selectedImages != null) {
+      setState(() {
+        // Adiciona as novas imagens à lista, mas garante que não ultrapasse 5
+        if (_imageFiles.length + selectedImages.length <= 5) {
+          _imageFiles
+              .addAll(selectedImages.map((image) => File(image.path)).toList());
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Você pode adicionar no máximo 5 imagens!')),
+          );
+        }
+      });
+      print("Imagens selecionadas: $_imageFiles"); // Debug
+    }
+  }
+
+  // Função para excluir uma imagem
+  void _removeImage(int index) {
+    setState(() {
+      _imageFiles.removeAt(index);
+    });
   }
 
   Future<void> _cadastrarCasa() async {
@@ -67,8 +92,8 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
           num_quarto: int.parse(_quartosController.text),
         );
 
-        bool success =
-            await widget.casaServices.cadastrarCasa(novaCasa, _imageFile!);
+        bool success = await widget.casaServices.cadastrarCasa(
+            novaCasa, _imageFiles); // Passando a lista de imagens
 
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -116,12 +141,11 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
         title: const Text(
           'Cadastrar Casa',
           style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0), // Cor do título
-            fontSize: 20, // Tamanho da fonte
+            color: Color.fromARGB(255, 0, 0, 0),
+            fontSize: 20,
           ),
         ),
-        backgroundColor:
-            Color.fromARGB(255, 255, 255, 255), // Cor de fundo da AppBar
+        backgroundColor: Color.fromARGB(255, 255, 255, 255),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -206,26 +230,77 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
               SizedBox(height: 20),
               // Botão para selecionar imagem
               TextButton.icon(
-                onPressed: _pickImage,
+                onPressed: _selectImages,
                 icon: Icon(Icons.image),
                 label: Text('Selecionar Imagem'),
               ),
-              if (_imageFile != null)
-                Image.file(
-                  _imageFile!,
-                  height: 200,
-                  fit: BoxFit.cover,
+              if (_imageFiles.isNotEmpty)
+                Container(
+                  height: 200, // Definindo o tamanho do carrossel
+                  child: PageView.builder(
+                    itemCount: _imageFiles.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return Stack(
+                        children: [
+                          Image.file(
+                            _imageFiles[index],
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          ),
+                          Positioned(
+                            top: 10,
+                            right: 10,
+                            child: GestureDetector(
+                              onTap: () => _removeImage(index),
+                              child: Icon(
+                                Icons.delete,
+                                color: Colors.red,
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
+              // Indicadores de página
+              Positioned(
+                bottom: 10,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    _imageFiles.length,
+                    (index) => Container(
+                      margin: EdgeInsets.symmetric(horizontal: 4),
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color:
+                            _currentPage == index ? Colors.blue : Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               SizedBox(height: 20),
               // Botão de cadastrar
               ElevatedButton(
                 onPressed: _isLoading ? null : _cadastrarCasa,
                 child: _isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
+                    ? CircularProgressIndicator(color: Colors.blue[300])
                     : Text('Cadastrar Casa'),
                 style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50),
-                ),
+                    minimumSize: Size(double.infinity, 50),
+                    backgroundColor: Colors.blue[300]),
               ),
             ],
           ),
