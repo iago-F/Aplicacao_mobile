@@ -3,7 +3,8 @@ import 'package:aluguel/casa/casa_model.dart';
 import 'package:aluguel/casa/casa_service.dart';
 import 'package:provider/provider.dart'; // Importação do Provider
 import 'minhas_casas_page.dart'; // Importe a página MinhasCasasPage
-import 'editar_casa_page.dart'; // Importe a página EditarCasaPage (certifique-se de ter essa página)
+import 'editar_casa_page.dart';
+import 'package:aluguel/usuario/usuario_services.dart'; // Importe a página EditarCasaPage (certifique-se de ter essa página)
 
 class CasaDetalhesPage extends StatelessWidget {
   final Casa casa;
@@ -60,6 +61,8 @@ class CasaDetalhesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final casaServices =
         Provider.of<CasaServices>(context); // Obtém o serviço de casas
+    final usuarioServices =
+        Provider.of<UsuarioServices>(context); // Obtém o serviço de usuários
 
     return Scaffold(
       appBar: AppBar(
@@ -72,15 +75,14 @@ class CasaDetalhesPage extends StatelessWidget {
             if (casa.Imagem != null)
               Center(
                 child: ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(0), // Removido o arredondamento
+                  borderRadius: BorderRadius.circular(
+                      16.0), // Ajuste o valor para o arredondamento desejado
                   child: Image.network(
-                    casa.Imagem!.toString(),
-                    width:
-                        double.infinity, // Faz a imagem ocupar toda a largura
-                    height: 250, // Altura da imagem
-                    fit: BoxFit
-                        .cover, // Faz a imagem cobrir toda a área disponível
+                    casa.Imagem![0],
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width *
+                        0.9, // 90% da largura da tela
+                    height: 180, // Tamanho fixo da altura
                   ),
                 ),
               )
@@ -151,11 +153,11 @@ class CasaDetalhesPage extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => EditarCasaPage(
-                          casa: casa
-                              .toJson(), // Passando a casa como Map<String, dynamic>
-                          casaId: casa.id_casa!, // Passando o id da casa
-                          casaServices:
-                              casaServices, // Passando o serviço de casas
+                          casa: casa, // A casa que você quer editar
+                          casaservices: Provider.of<CasaServices>(context,
+                              listen: false), // A casa que você quer editar
+
+                          // Serviço de usuário
                         ),
                       ),
                     );
@@ -170,7 +172,6 @@ class CasaDetalhesPage extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 ElevatedButton.icon(
                   icon: Icon(Icons.delete,
                       color: Colors.red), // Ícone da lixeira em vermelho

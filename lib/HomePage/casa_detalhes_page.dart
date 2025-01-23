@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aluguel/casa/casa_model.dart';
 import 'package:aluguel/agendamento/agendamento_page.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CasaDetalhesPage extends StatefulWidget {
   final Casa casa;
@@ -55,11 +56,23 @@ class _CasaDetalhesPageState extends State<CasaDetalhesPage> {
                           itemBuilder: (context, index) {
                             return ClipRRect(
                               borderRadius: BorderRadius.circular(12.0),
-                              child: Image.network(
-                                widget.casa.Imagem![index],
+                              child: CachedNetworkImage(
+                                imageUrl: widget
+                                    .casa.Imagem![index], // Alterado para index
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                height: 200,
+                                height: 160,
+                                placeholder: (context, url) => Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors
+                                        .amber[300], // Cor do carregamento
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Icon(
+                                  Icons.error,
+                                  color:
+                                      const Color.fromARGB(255, 194, 193, 193),
+                                ),
                               ),
                             );
                           },

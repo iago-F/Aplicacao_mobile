@@ -20,9 +20,11 @@ class MinhasVisitasPage extends StatelessWidget {
             .get();
 
         if (casaDoc.exists) {
-          casasMap[visita.casaId] =
-              Casa.fromJson(casaDoc.data() as Map<String, dynamic>)
-                ..id_casa = casaDoc.id;
+          final casaData = casaDoc.data();
+          if (casaData != null) {
+            casasMap[visita.casaId] = Casa.fromJson(casaData)
+              ..id_casa = casaDoc.id;
+          }
         }
       }
     }
@@ -83,7 +85,7 @@ class MinhasVisitasPage extends StatelessWidget {
                     elevation: 4,
                     child: ListTile(
                       title: Text(
-                        visita.nomeCompleto ?? 'Casa sem endereço',
+                        visita.nomeCompleto ?? 'Nome não disponível',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Column(
@@ -92,18 +94,24 @@ class MinhasVisitasPage extends StatelessWidget {
                           Text('Cidade: ${casa?.cidade ?? 'Não disponível'}'),
                           Text('Bairro: ${casa?.bairro ?? 'Não disponível'}'),
                           Text(
-                            'Data da visita: ${visita.dataHora.toString()}',
+                            'Data da visita: ${visita.dataHora?.toString() ?? 'Não disponível'}',
                           ),
                         ],
                       ),
-                      leading: casa?.Imagem != null
+                      leading: casa != null &&
+                              casa.Imagem != null &&
+                              casa.Imagem!.isNotEmpty
                           ? Image.network(
-                              casa!.Imagem!.toString(),
-                              width: 90,
-                              height: 90,
+                              casa.Imagem![0],
                               fit: BoxFit.cover,
+                              width: 100,
+                              height: 100,
                             )
-                          : const Icon(Icons.home, size: 60),
+                          : const Icon(
+                              Icons.home,
+                              size: 90,
+                              color: Colors.grey,
+                            ),
                     ),
                   );
                 },

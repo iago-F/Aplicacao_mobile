@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aluguel/casa/casa_model.dart';
 import 'package:aluguel/casa/minhas_casas_detalhe_page.dart';
 import 'package:aluguel/agendamento/meus_agendamentos_page.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MinhasCasasPage extends StatelessWidget {
   final String usuarioId;
@@ -34,7 +35,6 @@ class MinhasCasasPage extends StatelessWidget {
           ),
         ),
         body: SafeArea(
-          // Adicionado para evitar espaço indesejado
           child: TabBarView(
             children: [
               _buildMinhasCasas(context),
@@ -54,7 +54,14 @@ class MinhasCasasPage extends StatelessWidget {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: Transform.scale(
+              scale: 0.5,
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+              ),
+            ),
+          );
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(child: Text('Nenhuma casa cadastrada.'));
@@ -62,8 +69,19 @@ class MinhasCasasPage extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(8),
           children: snapshot.data!.docs.map((doc) {
-            Casa casa = Casa.fromJson(doc.data() as Map<String, dynamic>)
-              ..id_casa = doc.id;
+            // Obtendo os dados e corrigindo os tipos
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+            // Garantir que os campos numéricos tenham o tipo correto
+            data['area'] = (data['area'] is int)
+                ? (data['area'] as int).toDouble()
+                : data['area'];
+            data['preco_total'] = (data['preco_total'] is int)
+                ? (data['preco_total'] as int).toDouble()
+                : data['preco_total'];
+
+            // Criação do objeto Casa
+            Casa casa = Casa.fromJson(data)..id_casa = doc.id;
 
             return Card(
               elevation: 4,
@@ -81,23 +99,29 @@ class MinhasCasasPage extends StatelessWidget {
                   );
                 },
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   child: Row(
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(40),
-                        child: casa.Imagem != null
-                            ? Image.network(
-                                casa.Imagem!.toString(),
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
+                        borderRadius: BorderRadius.circular(6),
+                        child: casa.Imagem != null && casa.Imagem!.isNotEmpty
+                            ? SizedBox(
+                                width: 135,
+                                height: 100,
+                                child: CachedNetworkImage(
+                                  imageUrl: casa.Imagem![0],
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) =>
+                                      const CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.orange),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
+                                ),
                               )
-                            : Icon(
-                                Icons.home,
-                                size: 80,
-                                color: Colors.grey.shade400,
-                              ),
+                            : const Icon(Icons.home,
+                                size: 100, color: Colors.grey),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
