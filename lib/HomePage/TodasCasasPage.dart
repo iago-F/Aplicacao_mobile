@@ -46,12 +46,12 @@ class _TodasCasasPageState extends State<TodasCasasPage> {
         _casasFiltradas = _casas.where((casa) {
           final cidade = casa.cidade?.toLowerCase() ?? '';
           final preco = casa.preco_total?.toString() ?? '';
-          final descricao = casa.descricao?.toLowerCase() ?? '';
+          final num_banheiro = casa.num_banheiro?.toString() ?? '';
           final num_quarto = casa.num_quarto?.toString() ?? '';
           final bairro = casa.bairro?.toString() ?? '';
           return cidade.contains(query.toLowerCase()) ||
               preco.contains(query) ||
-              descricao.contains(query.toLowerCase()) ||
+              num_banheiro.contains(query) ||
               num_quarto.contains(query) ||
               bairro.contains(query);
         }).toList();
@@ -70,7 +70,7 @@ class _TodasCasasPageState extends State<TodasCasasPage> {
             child: TextField(
               controller: _pesquisaController,
               decoration: InputDecoration(
-                hintText: 'Pesquise por cidade, bairro, preço ou descrição',
+                hintText: 'Pesquise por cidade, bairro, preço, quartos...',
                 hintStyle: TextStyle(color: Colors.blue[300]),
                 prefixIcon: Icon(Icons.search, color: Colors.blue[300]),
                 filled: true,
@@ -175,11 +175,45 @@ class _TodasCasasPageState extends State<TodasCasasPage> {
                                           style: TextStyle(color: Colors.grey),
                                         ),
                                         SizedBox(height: 4.0),
-                                        Text(
-                                          casa.descricao ?? 'Sem descrição',
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(color: Colors.grey),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons
+                                                  .hotel, // ou outro ícone relacionado a quartos
+                                              color: Colors.blue[300],
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              (casa.num_quarto?.toString() ??
+                                                      '0') +
+                                                  ' quartos',
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  TextStyle(color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons
+                                                  .bathroom, // ou outro ícone relacionado a quartos
+                                              color: Colors.blue[300],
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              (casa.num_banheiro?.toString() ??
+                                                      '0') +
+                                                  ' banheiro',
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  TextStyle(color: Colors.grey),
+                                            ),
+                                          ],
                                         ),
                                         SizedBox(height: 8.0),
                                         Text(

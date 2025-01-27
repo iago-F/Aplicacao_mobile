@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -73,7 +74,7 @@ class _EditarCasaPageState extends State<EditarCasaPage> {
       });
 
       try {
-        // Coleta os valores atualizados do formulário
+        // 1. Coleta valores do formulário
         String rua = _ruaController.text;
         String bairro = _bairroController.text;
         String cidade = _cidadeController.text;
@@ -84,14 +85,42 @@ class _EditarCasaPageState extends State<EditarCasaPage> {
         int? numQuarto = int.tryParse(_quartosController.text);
         int? numBanheiro = int.tryParse(_banheirosController.text);
 
-        // Checa se há nova imagem e faz o upload
-        String? imagemUrl;
-        if (widget.casa.Imagem != null && widget.casa.Imagem!.isNotEmpty) {
-          imagemUrl = await widget.casaservices.uploadImageToFirebase(
-              widget.casa.Imagem![0], widget.casa.id_casa!);
+        // 2. URLs antigas obtidas do objeto 'widget.casa'
+        //    (Essas devem estar salvas como URLs completas do Storage)
+        List<String> urlsAntigas = widget.casa.Imagem ?? [];
+
+        // 3. Faz upload somente para as imagens locais (se o usuário substituiu alguma).
+        //    Você precisa ter alguma forma de distinguir entre o que é "URL antiga"
+        //    e o que é "caminho local novo". Ex: se começa com "http", é URL;
+        //    se não, é caminho local.
+        List<String> novasImagensUrls = [];
+        for (String pathOuUrl in widget.casa.Imagem ?? []) {
+          // Se for caminho local (ex: /data/user/0/... ou content://)
+          if (!pathOuUrl.startsWith('http')) {
+            // Upload e salva a nova URL
+            String? url = await widget.casaservices
+                .uploadImageToFirebase(pathOuUrl, widget.casa.id_casa!);
+            if (url != null) {
+              novasImagensUrls.add(url);
+            }
+          } else {
+            // Se já for uma URL antiga que o usuário não alterou
+            novasImagensUrls.add(pathOuUrl);
+          }
         }
 
-        // Cria uma nova instância de Casa com os valores atualizados
+        // 4. Descobrir quais imagens devem ser removidas (diferença das listas)
+        //    Ou seja, todas que estavam em 'urlsAntigas' mas não estão em 'novasImagensUrls'
+        List<String> urlsParaRemover = urlsAntigas
+            .where((url) => !novasImagensUrls.contains(url))
+            .toList();
+
+        // 5. Excluir do Firebase Storage somente as imagens que o usuário removeu/trocou
+        if (urlsParaRemover.isNotEmpty) {
+          await widget.casaservices.excluirImagensDoStorage(urlsParaRemover);
+        }
+
+        // 6. Cria objeto Casa atualizado
         Casa casaAtualizada = Casa(
           id_casa: widget.casa.id_casa,
           rua: rua,
@@ -103,35 +132,30 @@ class _EditarCasaPageState extends State<EditarCasaPage> {
           preco_total: precoTotal,
           num_quarto: numQuarto,
           num_banheiro: numBanheiro,
-          Imagem: imagemUrl != null
-              ? [imagemUrl]
-              : widget.casa.Imagem, // Atualiza a imagem
+          Imagem: novasImagensUrls, // lista final (antigas que ficaram + novas)
         );
 
-        // Chama o método atualizarCasa do serviço
+        // 7. Atualiza no Firestore
         await widget.casaservices.atualizarCasa(
           widget.casa.id_casa!,
-          novasImagensPaths: casaAtualizada.Imagem,
+          novasImagensPaths: novasImagensUrls,
           rua: rua,
           bairro: bairro,
           cidade: cidade,
           estado: estado,
           descricao: descricao,
-          area: area,
-          precoTotal: precoTotal,
+          area: area ?? 0,
+          precoTotal: precoTotal ?? 0,
           numQuarto: numQuarto,
           numBanheiro: numBanheiro,
         );
 
-        // Exibe uma mensagem de sucesso
+        // 8. Mensagem e navegação
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Casa atualizada com sucesso!')),
         );
-
-        // Volta para a página anterior ou atualiza a interface
         Navigator.pop(context, casaAtualizada);
       } catch (e) {
-        // Exibe uma mensagem de erro
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao atualizar casa: $e')),
         );

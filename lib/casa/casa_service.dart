@@ -15,8 +15,8 @@ class CasaServices extends ChangeNotifier {
 
   // Getter para acessar a lista de casas
   List<Casa> get casas => _casas;
-  // Método para cadastrar uma casa
-  // Método para cadastrar uma casa com múltiplas imagens
+
+  // Método para cadastrar uma casa com múltiplas imagens (Opção B)
   Future<bool> cadastrarCasa(Casa casa, List<File> imageFiles) async {
     try {
       String? usuarioId = _usuarioServices.getUsuarioId();
@@ -25,16 +25,15 @@ class CasaServices extends ChangeNotifier {
         return false;
       }
 
+      // Vamos usar o ID que já veio em casa.id_casa (via uuid.v4())
       casa.id_usuario = usuarioId;
-      String casaId = _firestore.collection('casas').doc().id;
-      casa.id_casa = casaId;
 
       // Lista para armazenar as URLs das imagens
       List<String> imageUrls = [];
 
-      // Fazendo o upload das imagens
+      // Faz o upload das imagens
       for (var imageFile in imageFiles) {
-        String? imageUrl = await uploadImage(imageFile, casaId);
+        String? imageUrl = await uploadImage(imageFile, casa.id_casa!);
         if (imageUrl != null) {
           imageUrls.add(imageUrl);
         } else {
@@ -46,10 +45,10 @@ class CasaServices extends ChangeNotifier {
       // Adiciona as URLs das imagens à casa
       casa.Imagem = imageUrls;
 
-      // Salva a casa no Firestore
-      await _firestore.collection('casas').doc(casaId).set(casa.toJson());
+      // Salva a casa no Firestore (usando o ID do uuid.v4())
+      await _firestore.collection('casas').doc(casa.id_casa).set(casa.toJson());
 
-      // Atualiza a lista local de casas e notifica os ouvintes
+      // Atualiza a lista local e notifica ouvintes
       _casas.add(casa);
       notifyListeners();
 
@@ -60,7 +59,7 @@ class CasaServices extends ChangeNotifier {
     }
   }
 
-// Método para fazer upload da imagem
+  // Método para fazer upload da imagem para o Firebase Storage
   Future<String?> uploadImage(File image, String casaId) async {
     try {
       String filePath =
@@ -76,17 +75,14 @@ class CasaServices extends ChangeNotifier {
     }
   }
 
-  // Método para buscar todas as casas
+  // Método para buscar todas as casas (carrega e converte types)
   Future<void> carregarCasas() async {
     try {
-      // Carrega as casas do Firestore
       QuerySnapshot snapshot = await _firestore.collection('casas').get();
 
-      // Converte os documentos para uma lista de objetos Casa
       _casas = snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-        // Corrige os tipos para valores de área e preço
+        // Conversão int->double para área e preço
         return Casa.fromJson({
           ...data,
           'area': (data['area'] is int)
@@ -98,23 +94,19 @@ class CasaServices extends ChangeNotifier {
         });
       }).toList();
 
-      // Notifica os ouvintes que os dados foram carregados
       notifyListeners();
     } catch (e) {
       debugPrint('Erro ao carregar as casas: $e');
     }
   }
 
-  // metodo para trazer todas as casas do bacno
+  // Busca todas as casas, retornando uma lista
   Future<List<Casa>> buscarTodasCasas() async {
     try {
       QuerySnapshot snapshot = await _firestore.collection('casas').get();
 
-      // Mapeia os documentos para objetos do tipo Casa
       return snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-        // Corrige os tipos para valores de área e preço
         return Casa.fromJson({
           ...data,
           'area': (data['area'] is int)
@@ -131,17 +123,36 @@ class CasaServices extends ChangeNotifier {
     }
   }
 
-  // Método para excluir uma casa
   Future<bool> excluirCasa(String casaId) async {
     try {
-      // Deleta a imagem da casa no Firebase Storage
-      String filePath = 'casas/$casaId/imagem.jpg';
-      await FirebaseStorage.instance.ref(filePath).delete();
+      // 1. Obtém o documento da casa
+      DocumentSnapshot docSnap =
+          await _firestore.collection('casas').doc(casaId).get();
 
-      // Deleta o documento da casa no Firestore
+      if (!docSnap.exists) {
+        debugPrint('Casa não encontrada no Firestore para o ID: $casaId');
+        return false;
+      }
+
+      // 2. Pega a lista de URLs (campo "Imagem") no documento
+      Map<String, dynamic> data = docSnap.data() as Map<String, dynamic>;
+      List<String> imagens = List<String>.from(data['Imagem'] ?? []);
+
+      // 3. Exclui cada imagem do Storage
+      for (String url in imagens) {
+        try {
+          Reference ref = FirebaseStorage.instance.refFromURL(url);
+          await ref.delete();
+          debugPrint('Imagem removida do Firebase Storage: $url');
+        } catch (e) {
+          debugPrint('Erro ao remover imagem do Firebase Storage: $e');
+        }
+      }
+
+      // 4. Exclui o documento no Firestore
       await _firestore.collection('casas').doc(casaId).delete();
 
-      // Atualiza a lista de casas local e notifica os ouvintes
+      // 5. Remove da lista local
       _casas.removeWhere((casa) => casa.id_casa == casaId);
       notifyListeners();
 
@@ -153,14 +164,16 @@ class CasaServices extends ChangeNotifier {
     }
   }
 
-  // Método para ouvir mudanças em tempo real (como no StreamBuilder)
+  // Método para ouvir mudanças em tempo real
   Stream<List<Casa>> getCasas() {
-    return _firestore.collection('casas').snapshots().map((snapshot) => snapshot
-        .docs
-        .map((doc) => Casa.fromJson(doc.data() as Map<String, dynamic>))
-        .toList());
+    return _firestore.collection('casas').snapshots().map(
+          (snapshot) => snapshot.docs.map((doc) {
+            return Casa.fromJson(doc.data() as Map<String, dynamic>);
+          }).toList(),
+        );
   }
 
+  // Método para atualizar a casa (com diferença de imagens e tudo mais)
   Future<bool> atualizarCasa(
     String casaId, {
     required List<String>? novasImagensPaths,
@@ -175,30 +188,26 @@ class CasaServices extends ChangeNotifier {
     required int? numBanheiro,
   }) async {
     try {
-      // Obtém o ID do usuário autenticado
       String? usuarioId = _usuarioServices.getUsuarioId();
       if (usuarioId == null) {
         debugPrint('Usuário não autenticado. Atualização da casa falhou.');
         return false;
       }
 
-      // Referência ao documento no Firestore
       DocumentReference casaRef = _firestore.collection('casas').doc(casaId);
-
-      // Verifica se o documento existe no Firestore
       DocumentSnapshot casaSnapshot = await casaRef.get();
       if (!casaSnapshot.exists) {
         debugPrint('Casa não encontrada no Firestore para o ID: $casaId');
         return false;
       }
 
-      // Recupera a lista de imagens existentes no Firestore
+      // Imagens atuais
       Map<String, dynamic> casaDataAtual =
           casaSnapshot.data() as Map<String, dynamic>;
       List<String> imagensAtuais =
           List<String>.from(casaDataAtual['Imagem'] ?? []);
 
-      // Identifica as imagens a serem removidas
+      // Quais imagens remover
       List<String> imagensParaRemover = [];
       if (novasImagensPaths != null) {
         imagensParaRemover = imagensAtuais
@@ -206,7 +215,7 @@ class CasaServices extends ChangeNotifier {
             .toList();
       }
 
-      // Remove as imagens antigas do Firebase Storage
+      // Remove as imagens antigas do Storage
       for (String imagemUrl in imagensParaRemover) {
         try {
           Reference imagemRef = FirebaseStorage.instance.refFromURL(imagemUrl);
@@ -217,10 +226,9 @@ class CasaServices extends ChangeNotifier {
         }
       }
 
-      // Dados para atualização
+      // Novo set de dados
       Map<String, dynamic> casaDataAtualizada = {
-        'Imagem':
-            novasImagensPaths ?? imagensAtuais, // Atualiza a lista de imagens
+        'imagens': novasImagensPaths ?? imagensAtuais,
         'rua': rua,
         'bairro': bairro,
         'cidade': cidade,
@@ -230,20 +238,21 @@ class CasaServices extends ChangeNotifier {
         'preco_total': precoTotal ?? 0.0,
         'num_quarto': numQuarto ?? 0,
         'num_banheiro': numBanheiro ?? 0,
-        'id_usuario': usuarioId, // Certifique-se de enviar o usuário associado
+        'id_usuario': usuarioId,
       };
 
-      // Debug dos dados a serem enviados
       debugPrint('Atualizando dados no Firestore: $casaDataAtualizada');
 
-      // Atualizando o documento no Firestore
+      // Update no Firestore
       await casaRef.update(casaDataAtualizada);
 
-      // Debug após sucesso na atualização
+      // Opcional: Recarregar ou atualizar a lista local
+      await carregarCasas();
+
       debugPrint('Atualização realizada com sucesso no Firestore.');
 
-      // Atualiza a lista local de casas
-      int casaIndex = _casas.indexWhere((casa) => casa.id_casa == casaId);
+      // Atualiza na lista local (caso já exista)
+      int casaIndex = _casas.indexWhere((c) => c.id_casa == casaId);
       if (casaIndex != -1) {
         _casas[casaIndex] = Casa.fromJson({
           ...casaDataAtualizada,
@@ -257,31 +266,41 @@ class CasaServices extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      // Captura e exibe o erro, caso ocorra
       debugPrint('Erro ao atualizar a casa no Firestore: $e');
       return false;
     }
   }
 
-  Future<String?> uploadImageToFirebase(String imagePath, String casaId) async {
+  // Upload de imagem para quando você seleciona localmente (usado na edição)
+  Future<String?> uploadImageToFirebase(
+      String caminhoLocal, String casaId) async {
     try {
-      // Cria um caminho único para a imagem no Firebase Storage
       String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       String filePath = 'casas/$casaId/$fileName';
 
-      // Faz o upload da imagem
-      File imageFile = File(imagePath);
+      File imagemFile = File(caminhoLocal);
       TaskSnapshot snapshot =
-          await FirebaseStorage.instance.ref(filePath).putFile(imageFile);
+          await FirebaseStorage.instance.ref(filePath).putFile(imagemFile);
 
-      // Obtém a URL pública da imagem armazenada
       String downloadUrl = await snapshot.ref.getDownloadURL();
-      debugPrint('Imagem enviada com sucesso! URL: $downloadUrl');
-
+      debugPrint('Upload concluído! URL: $downloadUrl');
       return downloadUrl;
     } catch (e) {
       debugPrint('Erro ao fazer upload da imagem: $e');
       return null;
+    }
+  }
+
+  // Excluir imagens do storage, se precisar
+  Future<void> excluirImagensDoStorage(List<String> urlsParaRemover) async {
+    for (String url in urlsParaRemover) {
+      try {
+        Reference ref = FirebaseStorage.instance.refFromURL(url);
+        await ref.delete();
+        debugPrint('Imagem removida do Firebase Storage: $url');
+      } catch (e) {
+        debugPrint('Erro ao remover imagem do Firebase Storage: $e');
+      }
     }
   }
 }

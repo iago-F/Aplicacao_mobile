@@ -30,16 +30,16 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
   final TextEditingController _descricaoController = TextEditingController();
   final TextEditingController _quartosController = TextEditingController();
 
-  List<File> _imageFiles = []; // Alterei de File? para List<File>
+  List<File> _imageFiles = [];
   bool _isLoading = false;
-  int _currentPage = 0; // Variável para controle do indicador de página
+  int _currentPage = 0; // Índice do carrossel de imagens
 
   Future<void> _selectImages() async {
     if (_imageFiles.length > 5) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Você pode adicionar no máximo 5 imagens!')),
       );
-      return; // Impede a seleção de mais imagens
+      return;
     }
 
     final ImagePicker _picker = ImagePicker();
@@ -47,7 +47,6 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
 
     if (selectedImages != null) {
       setState(() {
-        // Adiciona as novas imagens à lista, mas garante que não ultrapasse 5
         if (_imageFiles.length + selectedImages.length <= 5) {
           _imageFiles
               .addAll(selectedImages.map((image) => File(image.path)).toList());
@@ -57,11 +56,10 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
           );
         }
       });
-      print("Imagens selecionadas: $_imageFiles"); // Debug
+      debugPrint("Imagens selecionadas: $_imageFiles");
     }
   }
 
-  // Função para excluir uma imagem
   void _removeImage(int index) {
     setState(() {
       _imageFiles.removeAt(index);
@@ -75,6 +73,7 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
       });
 
       try {
+        // Gera ID com uuid e usa como ID da casa
         var uuid = Uuid();
         String casaId = uuid.v4();
 
@@ -92,8 +91,8 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
           num_quarto: int.parse(_quartosController.text),
         );
 
-        bool success = await widget.casaServices.cadastrarCasa(
-            novaCasa, _imageFiles); // Passando a lista de imagens
+        bool success =
+            await widget.casaServices.cadastrarCasa(novaCasa, _imageFiles);
 
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -145,7 +144,7 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
             fontSize: 20,
           ),
         ),
-        backgroundColor: Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -236,7 +235,7 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
               ),
               if (_imageFiles.isNotEmpty)
                 Container(
-                  height: 200, // Definindo o tamanho do carrossel
+                  height: 200, // altura do carrossel
                   child: PageView.builder(
                     itemCount: _imageFiles.length,
                     onPageChanged: (index) {
@@ -269,7 +268,7 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
                     },
                   ),
                 ),
-              // Indicadores de página
+              // Indicadores de página do carrossel
               Positioned(
                 bottom: 10,
                 left: 0,
@@ -299,8 +298,9 @@ class _CadastrarCasaPageState extends State<CadastrarCasaPage> {
                     ? CircularProgressIndicator(color: Colors.blue[300])
                     : Text('Cadastrar Casa'),
                 style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 50),
-                    backgroundColor: Colors.blue[300]),
+                  minimumSize: Size(double.infinity, 50),
+                  backgroundColor: Colors.blue[300],
+                ),
               ),
             ],
           ),
